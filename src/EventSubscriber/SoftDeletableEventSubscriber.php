@@ -8,9 +8,10 @@ use Doctrine\Bundle\DoctrineBundle\EventSubscriber\EventSubscriberInterface;
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Events;
+use Gedmo\Mapping\MappedEventSubscriber;
 use Knp\DoctrineBehaviors\Contract\Entity\SoftDeletableInterface;
 
-final class SoftDeletableEventSubscriber implements EventSubscriberInterface
+final class SoftDeletableEventSubscriber extends MappedEventSubscriber
 {
     /**
      * @var string
@@ -69,4 +70,10 @@ final class SoftDeletableEventSubscriber implements EventSubscriberInterface
     {
         return [Events::onFlush, Events::loadClassMetadata];
     }
+
+
+	protected function getNamespace()
+	{
+		return __NAMESPACE__;
+	}
 }

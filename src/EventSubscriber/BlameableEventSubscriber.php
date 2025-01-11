@@ -4,17 +4,19 @@ declare(strict_types=1);
 
 namespace Knp\DoctrineBehaviors\EventSubscriber;
 
-use Doctrine\Bundle\DoctrineBundle\EventSubscriber\EventSubscriberInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
+use Doctrine\ORM\Event\PrePersistEventArgs;
+use Doctrine\ORM\Event\PreRemoveEventArgs;
+use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\Events;
-use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\UnitOfWork;
+use Gedmo\Mapping\MappedEventSubscriber;
 use Knp\DoctrineBehaviors\Contract\Entity\BlameableInterface;
 use Knp\DoctrineBehaviors\Contract\Provider\UserProviderInterface;
 
-final class BlameableEventSubscriber implements EventSubscriberInterface
+final class BlameableEventSubscriber extends MappedEventSubscriber
 {
     /**
      * @var string
@@ -59,9 +61,9 @@ final class BlameableEventSubscriber implements EventSubscriberInterface
     /**
      * Stores the current user into createdBy and updatedBy properties
      */
-    public function prePersist(LifecycleEventArgs $lifecycleEventArgs): void
+    public function prePersist(PrePersistEventArgs $lifecycleEventArgs): void
     {
-        $entity = $lifecycleEventArgs->getEntity();
+        $entity = $lifecycleEventArgs->getObject();
         if (! $entity instanceof BlameableInterface) {
             return;
         }
@@ -90,9 +92,9 @@ final class BlameableEventSubscriber implements EventSubscriberInterface
     /**
      * Stores the current user into updatedBy property
      */
-    public function preUpdate(LifecycleEventArgs $lifecycleEventArgs): void
+    public function preUpdate(PreUpdateEventArgs $lifecycleEventArgs): void
     {
-        $entity = $lifecycleEventArgs->getEntity();
+        $entity = $lifecycleEventArgs->getObject();
         if (! $entity instanceof BlameableInterface) {
             return;
         }
@@ -112,9 +114,9 @@ final class BlameableEventSubscriber implements EventSubscriberInterface
     /**
      * Stores the current user into deletedBy property
      */
-    public function preRemove(LifecycleEventArgs $lifecycleEventArgs): void
+    public function preRemove(PreRemoveEventArgs $lifecycleEventArgs): void
     {
-        $entity = $lifecycleEventArgs->getEntity();
+        $entity = $lifecycleEventArgs->getObject();
         if (! $entity instanceof BlameableInterface) {
             return;
         }
@@ -139,7 +141,7 @@ final class BlameableEventSubscriber implements EventSubscriberInterface
         return [Events::prePersist, Events::preUpdate, Events::preRemove, Events::loadClassMetadata];
     }
 
-    private function mapEntity(ClassMetadataInfo $classMetadataInfo): void
+    private function mapEntity(ClassMetadata $classMetadataInfo): void
     {
         if ($this->blameableUserEntity !== null && class_exists($this->blameableUserEntity)) {
             $this->mapManyToOneUser($classMetadataInfo);
@@ -153,21 +155,21 @@ final class BlameableEventSubscriber implements EventSubscriberInterface
         return $this->entityManager->getUnitOfWork();
     }
 
-    private function mapManyToOneUser(ClassMetadataInfo $classMetadataInfo): void
+    private function mapManyToOneUser(ClassMetadata $classMetadataInfo): void
     {
         $this->mapManyToOneWithTargetEntity($classMetadataInfo, self::CREATED_BY);
         $this->mapManyToOneWithTargetEntity($classMetadataInfo, self::UPDATED_BY);
         $this->mapManyToOneWithTargetEntity($classMetadataInfo, self::DELETED_BY);
     }
 
-    private function mapStringUser(ClassMetadataInfo $classMetadataInfo): void
+    private function mapStringUser(ClassMetadata $classMetadataInfo): void
     {
         $this->mapStringNullableField($classMetadataInfo, self::CREATED_BY);
         $this->mapStringNullableField($classMetadataInfo, self::UPDATED_BY);
         $this->mapStringNullableField($classMetadataInfo, self::DELETED_BY);
     }
 
-    private function mapManyToOneWithTargetEntity(ClassMetadataInfo $classMetadataInfo, string $fieldName): void
+    private function mapManyToOneWithTargetEntity(ClassMetadata $classMetadataInfo, string $fieldName): void
     {
         if ($classMetadataInfo->hasAssociation($fieldName)) {
             return;
@@ -184,7 +186,7 @@ final class BlameableEventSubscriber implements EventSubscriberInterface
         ]);
     }
 
-    private function mapStringNullableField(ClassMetadataInfo $classMetadataInfo, string $fieldName): void
+    private function mapStringNullableField(ClassMetadata $classMetadataInfo, string $fieldName): void
     {
         if ($classMetadataInfo->hasField($fieldName)) {
             return;
@@ -196,4 +198,10 @@ final class BlameableEventSubscriber implements EventSubscriberInterface
             'nullable' => true,
         ]);
     }
+
+
+	protected function getNamespace()
+	{
+		return __NAMESPACE__;
+	}
 }

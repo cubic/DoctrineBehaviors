@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Knp\DoctrineBehaviors\EventSubscriber;
 
-use Doctrine\Bundle\DoctrineBundle\EventSubscriber\EventSubscriberInterface;
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Doctrine\ORM\Events;
+use Gedmo\Mapping\MappedEventSubscriber;
 use Knp\DoctrineBehaviors\Contract\Entity\TreeNodeInterface;
 
-final class TreeEventSubscriber implements EventSubscriberInterface
+final class TreeEventSubscriber extends MappedEventSubscriber
 {
     public function loadClassMetadata(LoadClassMetadataEventArgs $loadClassMetadataEventArgs): void
     {
@@ -41,4 +41,10 @@ final class TreeEventSubscriber implements EventSubscriberInterface
     {
         return [Events::loadClassMetadata];
     }
+
+
+	protected function getNamespace()
+	{
+		return __NAMESPACE__;
+	}
 }

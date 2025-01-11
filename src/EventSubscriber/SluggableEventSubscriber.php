@@ -6,14 +6,17 @@ namespace Knp\DoctrineBehaviors\EventSubscriber;
 
 use Doctrine\Bundle\DoctrineBundle\EventSubscriber\EventSubscriberInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
+use Doctrine\ORM\Event\PrePersistEventArgs;
+use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\Events;
-use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\Persistence\Event\LifecycleEventArgs;
+use Gedmo\Mapping\MappedEventSubscriber;
 use Knp\DoctrineBehaviors\Contract\Entity\SluggableInterface;
 use Knp\DoctrineBehaviors\Repository\DefaultSluggableRepository;
 
-final class SluggableEventSubscriber implements EventSubscriberInterface
+final class SluggableEventSubscriber extends MappedEventSubscriber
 {
     /**
      * @var string
@@ -40,12 +43,12 @@ final class SluggableEventSubscriber implements EventSubscriberInterface
         ]);
     }
 
-    public function prePersist(LifecycleEventArgs $lifecycleEventArgs): void
+    public function prePersist(PrePersistEventArgs $lifecycleEventArgs): void
     {
         $this->processLifecycleEventArgs($lifecycleEventArgs);
     }
 
-    public function preUpdate(LifecycleEventArgs $lifecycleEventArgs): void
+    public function preUpdate(PreUpdateEventArgs $lifecycleEventArgs): void
     {
         $this->processLifecycleEventArgs($lifecycleEventArgs);
     }
@@ -58,7 +61,7 @@ final class SluggableEventSubscriber implements EventSubscriberInterface
         return [Events::loadClassMetadata, Events::prePersist, Events::preUpdate];
     }
 
-    private function shouldSkip(ClassMetadataInfo $classMetadataInfo): bool
+    private function shouldSkip(ClassMetadata $classMetadataInfo): bool
     {
         if (! is_a($classMetadataInfo->getName(), SluggableInterface::class, true)) {
             return true;
@@ -69,7 +72,7 @@ final class SluggableEventSubscriber implements EventSubscriberInterface
 
     private function processLifecycleEventArgs(LifecycleEventArgs $lifecycleEventArgs): void
     {
-        $entity = $lifecycleEventArgs->getEntity();
+        $entity = $lifecycleEventArgs->getObject();
         if (! $entity instanceof SluggableInterface) {
             return;
         }
@@ -132,4 +135,10 @@ final class SluggableEventSubscriber implements EventSubscriberInterface
 
         return $scheduledEntities;
     }
+
+
+	protected function getNamespace()
+	{
+		return __NAMESPACE__;
+	}
 }

@@ -8,9 +8,10 @@ use Doctrine\Bundle\DoctrineBundle\EventSubscriber\EventSubscriberInterface;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Doctrine\ORM\Events;
+use Gedmo\Mapping\MappedEventSubscriber;
 use Knp\DoctrineBehaviors\Contract\Entity\UuidableInterface;
 
-final class UuidableEventSubscriber implements EventSubscriberInterface
+final class UuidableEventSubscriber extends MappedEventSubscriber
 {
     public function loadClassMetadata(LoadClassMetadataEventArgs $loadClassMetadataEventArgs): void
     {
@@ -52,4 +53,10 @@ final class UuidableEventSubscriber implements EventSubscriberInterface
     {
         return [Events::loadClassMetadata, Events::prePersist];
     }
+
+
+	protected function getNamespace()
+	{
+		return __NAMESPACE__;
+	}
 }

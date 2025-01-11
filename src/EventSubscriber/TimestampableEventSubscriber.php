@@ -7,9 +7,10 @@ namespace Knp\DoctrineBehaviors\EventSubscriber;
 use Doctrine\Bundle\DoctrineBundle\EventSubscriber\EventSubscriberInterface;
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Doctrine\ORM\Events;
+use Gedmo\Mapping\MappedEventSubscriber;
 use Knp\DoctrineBehaviors\Contract\Entity\TimestampableInterface;
 
-final class TimestampableEventSubscriber implements EventSubscriberInterface
+final class TimestampableEventSubscriber extends MappedEventSubscriber
 {
     public function __construct(
         private string $timestampableDateFieldType
@@ -53,4 +54,10 @@ final class TimestampableEventSubscriber implements EventSubscriberInterface
     {
         return [Events::loadClassMetadata];
     }
+
+
+	protected function getNamespace()
+	{
+		return __NAMESPACE__;
+	}
 }
